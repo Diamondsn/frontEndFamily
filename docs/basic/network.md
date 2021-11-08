@@ -17,3 +17,19 @@ must-revalidate 表示缓存过期后必须重新向服务器验证
 | Opera | presto | -o- |
 | Chrome, Safari | webkit | -webkit |
 | Firefox | Gecko | -moz- |
+
+## URL 规范
+
+scheme://host.domain:port/path/filename  
+
+scheme - 定义因特网服务的类型。最常见的类型是 http  
+host - 定义域主机（http 的默认主机是 www）  
+domain - 定义因特网域名，比如 w3school.com.cn  
+:port - 定义主机上的端口号（http 的默认端口号是 80）  
+path - 定义服务器上的路径（如果省略，则文档必须位于网站的根目录中）  
+filename - 定义文档/资源的名称  
+
+## TCP/IP 协议
+
+TCP 协议实现拥塞控制、流量控制、可靠传输
+IP 协议充分利用网络资源

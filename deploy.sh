@@ -12,6 +12,9 @@ cd docs/.vuepress/dist
 # 如果是发布到自定义域名
 # echo 'www.example.com' > CNAME
 
+# 设置初始化默认分支名称是 main
+git config init.defaultBranch main
+
 git init
 git add -A
 git commit -m 'deploy'
