@@ -89,9 +89,16 @@ module.exports = {
       '/notes/': [
         {
           title: '《ECMAScript 6 入门教程》读书笔记',
-          collapsable: false,
+          collapsable: true,
           children: [
             'es6'
+          ],
+        },
+        {
+          title: '《即将到来的 ECMAScript 2022 新特性》文章笔记',
+          collapsable: true,
+          children: [
+            'es2022'
           ],
         },
       ]
@@ -116,5 +123,6 @@ module.exports = {
     docsDir: "docs",
     editLinks: true,
     editLinkText: "帮助我完善这篇内容🙏",
+    sidebarDepth: 4,
   },
 }
