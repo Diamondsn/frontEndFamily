@@ -28,6 +28,8 @@ jobs:
 
       - name: Install and Build 🔧
         run: |
+          npm install npm@6.14.10 -g
+          npm cache clear --force
           npm install
           npm run docs:build
 

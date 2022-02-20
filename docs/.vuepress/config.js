@@ -1,4 +1,18 @@
 module.exports = {
+  head: [
+    ['link', { rel: 'icon', href: '/logo.jpg' }],
+    [
+      'script', {}, `
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?707b0d3dc20b0c5f71accce694cd2e7c";
+      var s = document.getElementsByTagName("script")[0]; 
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+    `
+    ]],
   title: 'Front End Family',
   description: 'A family of front end knowledge',
   base: '/frontEndFamily/',
@@ -72,6 +86,15 @@ module.exports = {
           ],
         }
       ],
+      '/notes/': [
+        {
+          title: '《ECMAScript 6 入门教程》读书笔记',
+          collapsable: false,
+          children: [
+            'es6'
+          ],
+        },
+      ]
     },
     nav: [
       {
@@ -79,10 +102,15 @@ module.exports = {
         link: '/basic/',
       },
       {
-        text: 'Github',
-        link: 'https://github.com/Diamondsn/frontEndFamily',
-      }
+        text: '读书笔记',
+        link: '/notes/'
+      },
     ],
+    repo: 'https://github.com/Diamondsn/frontEndFamily',
+    repoLabel: '查看源码',
+    docsBranch: 'main',
+    nextLinks: true,
+    prevLinks: true,
     serviceWorker: true,
     lastUpdated: "更新时间",
     docsDir: "docs",
