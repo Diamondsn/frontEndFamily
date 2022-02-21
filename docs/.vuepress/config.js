@@ -88,6 +88,13 @@ module.exports = {
       ],
       '/notes/': [
         {
+          title: '《JavaScript 教程》读书笔记',
+          collapsable: true,
+          children: [
+            'Javascript'
+          ],
+        },
+        {
           title: '《ECMAScript 6 入门教程》读书笔记',
           collapsable: true,
           children: [
