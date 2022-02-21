@@ -91,7 +91,7 @@ module.exports = {
           title: '《JavaScript 教程》读书笔记',
           collapsable: true,
           children: [
-            'Javascript'
+            'JavaScript'
           ],
         },
         {
