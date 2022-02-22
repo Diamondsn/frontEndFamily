@@ -130,6 +130,6 @@ module.exports = {
     docsDir: "docs",
     editLinks: true,
     editLinkText: "帮助我完善这篇内容🙏",
-    sidebarDepth: 4,
+    sidebarDepth: 6,
   },
 }
