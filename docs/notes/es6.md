@@ -609,4 +609,554 @@ const { SourceMapConsumer, SourceNode } = require("source-map");
 
 ## 4. 字符串的扩展
 
+### 1. 字符的 Unicode 表示法
 
+ES6 支持 Unicode 表示法，`\u0000`~`\uFFFF` 或者双码点或 `\u{20BB7}` 将码点放在大括号中。
+
+``` JavaScript
+"\uD842\uDFB7"
+// "𠮷"
+
+"\u{20BB7}"
+// "𠮷"
+
+"\u{41}\u{42}\u{43}"
+// "ABC"
+```
+
+### 2. 字符串的遍历器接口
+
+for ... of 循环可以遍历字符串，也可识别大于`0xFFFF`的码点。传统 for 循环不能识别这样的码点。
+
+``` JavaScript
+let text = String.fromCodePoint(0x20BB7);
+
+for (let i = 0; i < text.length; i++) {
+  console.log(text[i]);
+}
+// " "
+// " "
+
+for (let i of text) {
+  console.log(i);
+}
+// "𠮷"
+```
+
+### 3. 模板字符串
+
+模板字符串（template string）是增强版的字符串，用反引号（`）标识。它可以当作普通字符串使用，也可以用来定义多行字符串，或者在字符串中嵌入变量。
+
+模板字符串中嵌入变量，需要将变量名写在${}之中。
+
+大括号内部可以放入任意的 JavaScript 表达式，可以进行运算，以及引用对象属性。
+
+模板字符串之中还能调用函数。
+
+如果大括号中的值不是字符串，将按照一般的规则转为字符串。比如对象会调用`toString`方法。
+
+## 5. 字符串的新增方法
+
+### 1. `String.fromCodePoint()` 方法
+
+ES6 提供了`String.fromCodePoint()`方法，可以识别大于`0xFFFF`的字符，弥补了`String.fromCharCode()`方法的不足。
+
+``` JavaScript
+String.fromCodePoint(0x20BB7)
+// "𠮷"
+String.fromCodePoint(0x78, 0x1f680, 0x79) === 'x\uD83D\uDE80y'
+// true
+```
+
+### 2. `String.raw()`
+
+String.raw()方法可以作为处理模板字符串的基本方法，它会将所有变量替换，而且对斜杠进行转义，方便下一步作为字符串来使用。
+
+``` JavaScript
+// `foo${1 + 2}bar`
+// 等同于
+String.raw({ raw: ['foo', 'bar'] }, 1 + 2) // "foo3bar"
+```
+
+`String.raw()`的代码实现基本如下。
+
+``` JavaScript
+String.raw = function (strings, ...values) {
+  let output = '';
+  let index;
+  for (index = 0; index < values.length; index++) {
+    output += strings.raw[index] + values[index];
+  }
+
+  output += strings.raw[index]
+  return output;
+}
+```
+
+### 3. 实例方法：codePointAt()
+
+ES6 提供了codePointAt()方法，能够正确处理 4 个字节储存的字符，返回一个字符的码点。
+
+``` JavaScript
+let s = '𠮷a';
+
+s.codePointAt(0) // 134071
+s.codePointAt(1) // 57271
+
+s.codePointAt(2) // 97
+```
+
+codePointAt()方法的参数，仍然是不正确的。上面代码中，字符a在字符串s的正确位置序号应该是 1，但是必须向codePointAt()方法传入 2。解决这个问题的一个办法是使用for...of循环。
+
+``` JavaScript
+let s = '𠮷a';
+for (let ch of s) {
+  console.log(ch.codePointAt(0).toString(16));
+}
+// 20bb7
+// 61
+```
+
+### 4. 实例方法：normalize()
+
+ES6 提供字符串实例的normalize()方法，用来将字符的不同表示方法统一为同样的形式，这称为 Unicode 正规化。
+
+``` JavaScript
+'\u01D1'.normalize() === '\u004F\u030C'.normalize()
+// true
+```
+
+### 5. 实例方法：includes(), startsWith(), endsWith() 
+
+- includes()：返回布尔值，表示是否找到了参数字符串。
+- startsWith()：返回布尔值，表示参数字符串是否在原字符串的头部。
+- endsWith()：返回布尔值，表示参数字符串是否在原字符串的尾部。
+
+这三个方法都支持第二个参数，表示开始搜索的位置。
+
+``` JavaScript
+let s = 'Hello world!';
+
+s.startsWith('world', 6) // true
+// 针对前 5 个字符
+s.endsWith('Hello', 5) // true
+s.includes('Hello', 6) // false
+```
+
+使用第二个参数n时，endsWith的行为与其他两个方法有所不同。它针对前n个字符，而其他两个方法针对从第n个位置直到字符串结束。
+
+### 6. 实例方法：repeat()
+
+repeat方法返回一个新字符串，表示将原字符串重复n次。
+
+参数如果是小数，会被取整。
+
+如果repeat的参数是负数或者Infinity，会报错。
+
+如果是 -1 到 0 之间的小数，会先被转换为 0。
+
+参数NaN等同于 0。
+
+如果repeat的参数是字符串，则会先转换成数字。
+
+### 7. 实例方法：padStart()，padEnd()
+
+如果某个字符串不够指定长度，会在头部或尾部补全。padStart()用于头部补全，padEnd()用于尾部补全。
+
+``` JavaScript
+'x'.padStart(5, 'ab') // 'ababx'
+'x'.padStart(4, 'ab') // 'abax'
+
+'x'.padEnd(5, 'ab') // 'xabab'
+'x'.padEnd(4, 'ab') // 'xaba'
+```
+
+padStart()和padEnd()一共接受两个参数，第一个参数是字符串补全生效的最大长度，第二个参数是用来补全的字符串。
+
+### 8. 实例方法：trimStart()，trimEnd()
+
+trimStart()和trimEnd()这两个方法。它们的行为与trim()一致，trimStart()消除字符串头部的空格，trimEnd()消除尾部的空格。它们返回的都是新字符串，不会修改原始字符串。
+
+``` JavaScript
+const s = '  abc  ';
+
+s.trim() // "abc"
+s.trimStart() // "abc  "
+s.trimEnd() // "  abc"
+```
+
+除了空格键，这两个方法对字符串头部（或尾部）的 tab 键、换行符等不可见的空白符号也有效。
+
+浏览器还部署了额外的两个方法，trimLeft()是trimStart()的别名，trimRight()是trimEnd()的别名。
+
+### 9. 实例方法：matchAll()
+
+matchAll()方法返回一个正则表达式在当前字符串的所有匹配.
+
+### 10. 实例方法：replaceAll()
+
+字符串的实例方法replace()只能替换第一个匹配。
+
+``` JavaScript
+'aabbcc'.replace('b', '_')
+// 'aa_bcc'
+```
+
+replaceAll()方法，可以一次性替换所有匹配。
+
+``` JavaScript
+String.prototype.replaceAll(searchValue, replacement)
+```
+
+searchValue是搜索模式，可以是一个字符串，也可以是一个全局的正则表达式（带有g修饰符）。
+
+如果searchValue是一个不带有g修饰符的正则表达式，replaceAll()会报错。
+
+``` JavaScript
+// 不报错
+'aabbcc'.replace(/b/, '_')
+
+// 报错
+'aabbcc'.replaceAll(/b/, '_')
+```
+
+可以使用的特殊字符串如下。
+
+- $&：匹配的字符串。
+- $` ：匹配结果前面的文本。
+- $'：匹配结果后面的文本。
+- $n：匹配成功的第n组内容，n是从1开始的自然数。这个参数生效的前提是，第一个参数必须是正则表达式。
+- $$：指代美元符号$。
+
+``` JavaScript
+// $& 表示匹配的字符串，即`b`本身
+// 所以返回结果与原字符串一致
+'abbc'.replaceAll('b', '$&')
+// 'abbc'
+
+// $` 表示匹配结果之前的字符串
+// 对于第一个`b`，$` 指代`a`
+// 对于第二个`b`，$` 指代`ab`
+'abbc'.replaceAll('b', '$`')
+// 'aaabc'
+
+// $' 表示匹配结果之后的字符串
+// 对于第一个`b`，$' 指代`bc`
+// 对于第二个`b`，$' 指代`c`
+'abbc'.replaceAll('b', `$'`)
+// 'abccc'
+
+// $1 表示正则表达式的第一个组匹配，指代`ab`
+// $2 表示正则表达式的第二个组匹配，指代`bc`
+'abbc'.replaceAll(/(ab)(bc)/g, '$2$1')
+// 'bcab'
+
+// $$ 指代 $
+'abc'.replaceAll('b', '$$')
+// 'a$c'
+```
+
+replaceAll()的第二个参数replacement除了为字符串，也可以是一个函数，该函数的返回值将替换掉第一个参数searchValue匹配的文本。
+
+第一个参数是捕捉到的匹配内容，第二个参数捕捉到是组匹配（有多少个组匹配，就有多少个对应的参数）。此外，最后还可以添加两个参数，倒数第二个参数是捕捉到的内容在整个字符串中的位置，最后一个参数是原字符串。
+
+``` JavaScript
+const str = '123abc456';
+const regex = /(\d+)([a-z]+)(\d+)/g;
+
+function replacer(match, p1, p2, p3, offset, string) {
+  return [p1, p2, p3].join(' - ');
+}
+
+str.replaceAll(regex, replacer)
+// 123 - abc - 456
+```
+
+### 11. 实例方法：at()
+
+at()方法接受一个整数作为参数，返回参数指定位置的字符，支持负索引（即倒数的位置）。
+
+``` JavaScript
+const str = 'hello';
+str.at(1) // "e"
+str.at(-1) // "o"
+```
+
+如果参数位置超出了字符串范围，at()返回undefined.
+
+## 6. 正则的扩展
+
+### 1. RegExp 构造函数
+
+如果RegExp构造函数第一个参数是一个正则对象，那么可以使用第二个参数指定修饰符。而且，返回的正则表达式会忽略原有的正则表达式的修饰符，只使用新指定的修饰符。
+
+``` JavaScript
+new RegExp(/abc/ig, 'i').flags
+// "i"
+```
+
+### 2. 字符串的正则方法
+
+字符串对象共有 4 个方法，可以使用正则表达式：match()、replace()、search()和split()。
+
+ES6 将这 4 个方法，在语言内部全部调用RegExp的实例方法，从而做到所有与正则相关的方法，全都定义在RegExp对象上。
+
+### 3. u 修饰符
+
+ES6 对正则表达式添加了u修饰符，含义为“Unicode 模式”，用来正确处理大于\uFFFF的 Unicode 字符。也就是说，会正确处理四个字节的 UTF-16 编码。
+
+``` JavaScript
+/^\uD83D/u.test('\uD83D\uDC2A') // false
+/^\uD83D/.test('\uD83D\uDC2A') // true
+```
+
+一旦加上u修饰符号，就会修改下面这些正则表达式的行为。
+
+#### 1. 点字符
+
+点（.）字符在正则表达式中，含义是除了换行符以外的任意单个字符。对于码点大于0xFFFF的 Unicode 字符，点字符不能识别，必须加上u修饰符。
+
+``` JavaScript
+var s = '𠮷';
+
+// . 在不加 u 修饰符情况下不能不匹配四字节字符
+/^.$/.test(s) // false
+/^.$/u.test(s) // true
+```
+
+#### 2. Unicode 字符表示法
+
+ES6 新增了使用大括号表示 Unicode 字符，这种表示法在正则表达式中必须加上u修饰符，才能识别当中的大括号，否则会被解读为量词。
+
+``` JavaScript
+// 需要匹配 61 个 u
+/\u{61}/.test('a') // false
+
+/\u{61}/u.test('a') // true
+/\u{20BB7}/u.test('𠮷') // true
+```
+
+#### 3. 量词
+
+``` JavaScript
+/a{2}/.test('aa') // true
+/a{2}/u.test('aa') // true
+/𠮷{2}/.test('𠮷𠮷') // false
+/𠮷{2}/u.test('𠮷𠮷') // true
+```
+
+#### 4. 预定义模式
+
+``` JavaScript
+// \S是预定义模式，匹配所有非空白字符
+/^\S$/.test('𠮷') // false
+/^\S$/u.test('𠮷') // true
+```
+
+#### 5. i 修饰符
+
+有些 Unicode 字符的编码不同，但是字型很相近，比如，\u004B与\u212A都是大写的K。
+
+``` JavaScript
+// 不加 u 不能识别非规范的 K 字符
+/[a-z]/i.test('\u212A') // false
+/[a-z]/iu.test('\u212A') // true
+```
+
+#### 6. 转义
+
+没有u修饰符的情况下，正则中没有定义的转义（如逗号的转义\,）无效，而在u模式会报错。
+
+``` JavaScript
+// \, 无效在不加 u 模式下无效，在 u 模式下直接报错
+/\,/ // /\,/
+/\,/u // 报错
+```
+
+### 4. RegExp.prototype.unicode 属性
+
+正则实例对象新增unicode属性，表示是否设置了u修饰符。
+
+``` JavaScript
+const r1 = /hello/;
+const r2 = /hello/u;
+
+r1.unicode // false
+r2.unicode // true
+```
+
+### 5. y 修饰符
+
+正则表达式添加了y修饰符，叫做“粘连”（sticky）修饰符。
+
+y修饰符的作用与g修饰符类似，也是全局匹配，后一次匹配都从上一次匹配成功的下一个位置开始。不同之处在于，g修饰符只要剩余位置中存在匹配就可，而y修饰符确保匹配必须从剩余的第一个位置开始，这也就是“粘连”的涵义。
+
+``` JavaScript
+var s = 'aaa_aa_a';
+var r1 = /a+/g;
+var r2 = /a+/y;
+
+r1.exec(s) // ["aaa"]
+r2.exec(s) // ["aaa"]
+
+r1.exec(s) // ["aa"]
+// 下次匹配的开头不是 a，是_
+r2.exec(s) // null
+```
+
+### 6. RegExp.prototype.sticky 属性
+
+与y修饰符相匹配，ES6 的正则实例对象多了sticky属性，表示是否设置了y修饰符。
+
+``` JavaScript
+var r = /hello\d/y;
+r.sticky // true
+```
+
+### 7. RegExp.prototype.flags 属性
+
+ES6 为正则表达式新增了flags属性，会返回正则表达式的修饰符。
+
+``` JavaScript
+// ES5 的 source 属性
+// 返回正则表达式的正文
+/abc/ig.source
+// "abc"
+
+// ES6 的 flags 属性
+// 返回正则表达式的修饰符
+/abc/ig.flags
+// 'gi'
+```
+
+### 8. s 修饰符：dotAll 模式
+
+正则表达式中，点（.）是一个特殊字符，代表任意的单个字符，但是有两个例外。一个是四个字节的 UTF-16 字符，这个可以用u修饰符解决；另一个是行终止符（line terminator character）。
+
+``` JavaScript
+// . 不能匹配换行符
+/foo.bar/.test('foo\nbar')
+// false
+```
+
+很多时候我们希望匹配的是任意单个字符，这时有一种变通的写法。
+
+``` JavaScript
+/foo[^]bar/.test('foo\nbar')
+// true
+```
+
+ES2018 引入s修饰符，使得.可以匹配任意单个字符。
+
+``` JavaScript
+const re = /foo.bar/s;
+// 另一种写法
+// const re = new RegExp('foo.bar', 's');
+
+re.test('foo\nbar') // true
+re.dotAll // true
+re.flags // 's'
+```
+
+### 9. 后行断言
+
+“先行断言”指的是，x只有在y前面才匹配，必须写成/x(?=y)/。比如，只匹配百分号之前的数字，要写成/\d+(?=%)/。“先行否定断言”指的是，x只有不在y前面才匹配，必须写成/x(?!y)/。比如，只匹配不在百分号之前的数字，要写成/\d+(?!%)/。
+
+``` JavaScript
+/\d+(?=%)/.exec('100% of US presidents have been male')  // ["100"]
+/\d+(?!%)/.exec('that’s all 44 of them')                 // ["44"]
+```
+
+“后行断言”正好与“先行断言”相反，x只有在y后面才匹配，必须写成/(?<=y)x/。比如，只匹配美元符号之后的数字，要写成/(?<=\$)\d+/。“后行否定断言”则与“先行否定断言”相反，x只有不在y后面才匹配，必须写成/(?<!y)x/。比如，只匹配不在美元符号后面的数字，要写成/(?<!\$)\d+/。
+
+``` JavaScript
+/(?<=\$)\d+/.exec('Benjamin Franklin is on the $100 bill')  // ["100"]
+/(?<!\$)\d+/.exec('it’s is worth about €90')                // ["90"]
+```
+
+### 10. Unicode 属性类
+
+ES2018 引入了 Unicode 属性类，允许使用\p{...}和\P{...}（\P是\p的否定形式）代表一类 Unicode 字符，匹配满足条件的所有字符。必须带上 u 修饰符。
+
+``` JavaScript
+// 匹配所有希腊字母
+const regexGreekSymbol = /\p{Script=Greek}/u;
+regexGreekSymbol.test('π') // true
+```
+
+### 11. 具名组匹配
+
+``` JavaScript
+const RE_DATE = /(\d{4})-(\d{2})-(\d{2})/;
+
+const matchObj = RE_DATE.exec('1999-12-31');
+const year = matchObj[1]; // 1999
+const month = matchObj[2]; // 12
+const day = matchObj[3]; // 31
+```
+
+ES2018 引入了具名组匹配（Named Capture Groups），允许为每一个组匹配指定一个名字，既便于阅读代码，又便于引用。
+
+``` JavaScript
+const RE_DATE = /(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})/;
+
+const matchObj = RE_DATE.exec('1999-12-31');
+const year = matchObj.groups.year; // "1999"
+const month = matchObj.groups.month; // "12"
+const day = matchObj.groups.day; // "31"
+```
+
+字符串替换时，使用$<组名>引用具名组。
+
+``` JavaScript
+let re = /(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})/u;
+
+'2015-01-02'.replace(re, '$<day>/$<month>/$<year>')
+// '02/01/2015'
+```
+
+如果要在正则表达式内部引用某个“具名组匹配”，可以使用\k<组名>的写法。
+
+``` JavaScript
+const RE_TWICE = /^(?<word>[a-z]+)!\k<word>$/;
+RE_TWICE.test('abc!abc') // true
+RE_TWICE.test('abc!ab') // false
+```
+
+### 12. String.prototype.matchAll()
+
+如果一个正则表达式在字符串里面有多个匹配，现在一般使用g修饰符或y修饰符，在循环里面逐一取出。
+
+``` Javascript
+var regex = /t(e)(st(\d?))/g;
+var string = 'test1test2test3';
+
+var matches = [];
+var match;
+while (match = regex.exec(string)) {
+  matches.push(match);
+}
+
+matches
+// [
+//   ["test1", "e", "st1", "1", index: 0, input: "test1test2test3"],
+//   ["test2", "e", "st2", "2", index: 5, input: "test1test2test3"],
+//   ["test3", "e", "st3", "3", index: 10, input: "test1test2test3"]
+// ]
+```
+
+ES2020 增加了String.prototype.matchAll()方法，可以一次性取出所有匹配。不过，它返回的是一个遍历器（Iterator），而不是数组。
+
+``` JavaScript
+const string = 'test1test2test3';
+const regex = /t(e)(st(\d?))/g;
+
+for (const match of string.matchAll(regex)) {
+  console.log(match);
+}
+// ["test1", "e", "st1", "1", index: 0, input: "test1test2test3"]
+// ["test2", "e", "st2", "2", index: 5, input: "test1test2test3"]
+// ["test3", "e", "st3", "3", index: 10, input: "test1test2test3"]
+```
+
+遍历器转为数组有`...`运算符和`Array.from()`方法。
