@@ -1160,3 +1160,399 @@ for (const match of string.matchAll(regex)) {
 ```
 
 遍历器转为数组有`...`运算符和`Array.from()`方法。
+
+## 7. 数值的扩展
+
+### 1. 二进制和八进制表示法
+
+ES6 提供了二进制和八进制数值的新的写法，分别用前缀0b（或0B）和0o（或0O）表示。
+
+``` JavaScript
+0b111110111 === 503 // true
+0o767 === 503 // true
+```
+
+### 2. 数值分隔符
+
+ES2021，允许 JavaScript 的数值使用下划线（_）作为分隔符。
+
+- 不能放在数值的最前面（leading）或最后面（trailing）。
+- 不能两个或两个以上的分隔符连在一起。
+- 小数点的前后不能有分隔符。
+- 科学计数法里面，表示指数的e或E前后不能有分隔符。
+
+下面三个将字符串转成数值的函数，不支持数值分隔符。
+
+- Number()
+- parseInt()
+- parseFloat()
+
+``` JavaScript
+Number('123_456') // NaN
+parseInt('123_456') // 123
+```
+
+### 3. Number.isFinite(), Number.isNaN()
+
+Number.isFinite()用来检查一个数值是否为有限的（finite），即不是Infinity。
+
+如果参数类型不是数值，`Number.isFinite`一律返回`false`。
+
+Number.isNaN()用来检查一个值是否为NaN。
+
+如果参数类型不是NaN，Number.isNaN一律返回false。
+
+
+### 4. Number.parseInt(), Number.parseFloat() 
+
+和全局方法parseInt()和parseFloat()行为一致。
+
+### 5. Number.isInteger()
+
+Number.isInteger()用来判断一个数值是否为整数。
+
+整数和浮点数采用的是同样的储存方法，所以 25 和 25.0 被视为同一个值。
+
+参数不是数值，Number.isInteger返回false。
+
+### 6. Number.EPSILON
+
+它表示 1 与大于 1 的最小浮点数之间的差，等于 2 的 -52 次方。
+
+### 7. 安全整数和 Number.isSafeInteger()
+
+ES6 引入了Number.MAX_SAFE_INTEGER和Number.MIN_SAFE_INTEGER这两个常量，用来表示这个范围的上下限。
+
+``` JavaScript
+Number.MAX_SAFE_INTEGER === Math.pow(2, 53) - 1
+// true
+Number.MAX_SAFE_INTEGER === 9007199254740991
+// true
+
+Number.MIN_SAFE_INTEGER === -Number.MAX_SAFE_INTEGER
+// true
+Number.MIN_SAFE_INTEGER === -9007199254740991
+```
+
+Number.isSafeInteger()则是用来判断一个整数是否落在这个范围之内。
+
+### 8. Math 对象的扩展
+
+Math.trunc方法用于去除一个数的小数部分，返回整数部分。
+
+Math.sign方法用来判断一个数到底是正数、负数、还是零。对于非数值，会先将其转换为数值。
+
+- 参数为正数，返回+1；
+- 参数为负数，返回-1；
+- 参数为 0，返回0；
+- 参数为-0，返回-0;
+- 其他值，返回NaN。
+
+Math.cbrt()方法用于计算一个数的立方根。
+
+Math.clz32()方法将参数转为 32 位无符号整数的形式，然后返回这个 32 位值里面有多少个前导 0。
+
+Math.imul方法返回两个数以 32 位带符号整数形式相乘的结果，返回的也是一个 32 位的带符号整数。对于那些很大的数的乘法，低位数值往往都是不精确的，Math.imul方法可以返回正确的低位数值。
+
+Math.fround方法返回一个数的32位单精度浮点数形式。
+
+Math.hypot方法返回所有参数的平方和的平方根。
+
+Math.expm1(x)返回 ex - 1，即Math.exp(x) - 1。
+
+Math.log1p(x)方法返回1 + x的自然对数，即Math.log(1 + x)。如果x小于-1，返回NaN。
+
+Math.log10(x)返回以 10 为底的x的对数。如果x小于 0，则返回 NaN。
+
+Math.log2(x)返回以 2 为底的x的对数。如果x小于 0，则返回 NaN。
+
+Math.sinh(x) 返回x的双曲正弦（hyperbolic sine）
+Math.cosh(x) 返回x的双曲余弦（hyperbolic cosine）
+Math.tanh(x) 返回x的双曲正切（hyperbolic tangent）
+Math.asinh(x) 返回x的反双曲正弦（inverse hyperbolic sine）
+Math.acosh(x) 返回x的反双曲余弦（inverse hyperbolic cosine）
+Math.atanh(x) 返回x的反双曲正切（inverse hyperbolic tangent）
+
+### 9. BigInt 数据类型
+
+JavaScript 所有数字都保存成 64 位浮点数，这给数值的表示带来了两大限制。
+
+一是数值的精度只能到 53 个二进制位（相当于 16 个十进制位），大于这个范围的整数，JavaScript 是无法精确表示，这使得 JavaScript 不适合进行科学和金融方面的精确计算。
+
+二是大于或等于2的1024次方的数值，JavaScript 无法表示，会返回Infinity。
+
+BigInt 只用来表示整数，没有位数的限制，任何位数的整数都可以精确表示。
+
+为了与 Number 类型区别，BigInt 类型的数据必须添加后缀n。
+
+BigInt 与普通整数是两种值，它们之间并不相等。
+
+typeof运算符对于 BigInt 类型的数据返回bigint。
+
+可以使用Boolean()、Number()和String()这三个方法，将 BigInt 可以转为布尔值、数值和字符串类型。
+
+``` JavaScript
+Boolean(0n) // false
+Boolean(1n) // true
+Number(1n)  // 1
+String(1n)  // "1"
+```
+
+不允许 BigInt 与普通数值混合计算，比较运算符（比如>）和相等运算符（==）允许 BigInt 与其他类型的值混合计算，因为这样做不会损失精度。
+
+BigInt 与字符串混合运算时，会先转为字符串，再进行运算。
+
+## 8. 函数的扩展
+
+### 1. 函数参数的默认值
+
+ES6 允许为函数的参数设置默认值，即直接写在参数定义的后面。
+
+指定了默认值以后，函数的length属性，将返回没有指定默认值的参数个数。
+
+### 2. rest 参数
+
+ES6 引入 rest 参数（形式为...变量名），用于获取函数的多余参数。
+
+注意，rest 参数之后不能再有其他参数（即只能是最后一个参数），否则会报错。
+
+函数的length属性，不包括 rest 参数。
+
+### 3. 严格模式
+
+从 ES5 开始，函数内部可以设定为严格模式。
+
+ES2016 做了一点修改，规定只要函数参数使用了默认值、解构赋值、或者扩展运算符，那么函数内部就不能显式设定为严格模式，否则会报错。
+
+### 4. name 属性
+
+函数的name属性，返回该函数的函数名。
+
+ES6 对这个属性的行为做出了一些修改。如果将一个匿名函数赋值给一个变量，ES5 的name属性，会返回空字符串，而 ES6 的name属性会返回实际的函数名。
+
+``` JavaScript
+var f = function () {};
+
+// ES5
+f.name // ""
+
+// ES6
+f.name // "f"
+```
+
+Function构造函数返回的函数实例，name属性的值为anonymous。
+
+``` JavaScript
+(new Function).name // "anonymous"
+```
+
+bind返回的函数，name属性值会加上bound前缀。
+
+``` JavaScript
+function foo() {};
+foo.bind({}).name // "bound foo"
+
+(function(){}).bind({}).name // "bound "
+```
+
+### 5. 箭头函数
+
+- 箭头函数没有自己的this对象（详见下文）。
+
+- 不可以当作构造函数，也就是说，不可以对箭头函数使用new命令，否则会抛出一个错误。
+
+- 不可以使用arguments对象，该对象在函数体内不存在。如果要用，可以用 rest 参数代替。
+
+- 不可以使用yield命令，因此箭头函数不能用作 Generator 函数。
+
+### 6. 尾调用优化
+
+尾调用（Tail Call）是函数式编程的一个重要概念，本身非常简单，一句话就能说清楚，就是指某个函数的最后一步是调用另一个函数。
+
+“尾调用优化”（Tail call optimization），即只保留内层函数的调用帧。如果所有函数都是尾调用，那么完全可以做到每次执行时，调用帧只有一项，这将大大节省内存。
+
+``` JavaScript
+function factorial(n, total) {
+  if (n === 1) return total;
+  return factorial(n - 1, n * total);
+}
+
+factorial(5, 1) // 120
+```
+
+尾递归优化过的 Fibonacci 数列实现如下。
+
+``` JavaScript
+function Fibonacci2 (n , ac1 = 1 , ac2 = 1) {
+  if( n <= 1 ) {return ac2};
+
+  return Fibonacci2 (n - 1, ac2, ac1 + ac2);
+}
+
+Fibonacci2(100) // 573147844013817200000
+Fibonacci2(1000) // 7.0330367711422765e+208
+```
+
+函数式编程有一个概念，叫做柯里化（currying），意思是将多参数的函数转换成单参数的形式。
+
+``` JavaScript
+function currying(fn, n) {
+  return function (m) {
+    return fn.call(this, m, n);
+  };
+}
+```
+
+蹦床函数（trampoline）可以将递归执行转为循环执行。
+
+``` JavaScript
+function trampoline(f) {
+  while (f && f instanceof Function) {
+    f = f();
+  }
+  return f;
+}
+```
+
+蹦床函数并不是真正的尾递归优化，下面的实现才是。
+
+``` JavaScript
+function tco(f) {
+  var value;
+  var active = false;
+  var accumulated = [];
+
+  return function accumulator() {
+    accumulated.push(arguments);
+    if (!active) {
+      // 只在最外层进入
+      active = true;
+      while (accumulated.length) {
+        // 这里调用但都返回 undefined，并将参数加入到 accumulated
+        value = f.apply(this, accumulated.shift());
+      }
+      active = false;
+      return value;
+    }
+  };
+}
+
+var sum = tco(function(x, y) {
+  if (y > 0) {
+    return sum(x + 1, y - 1)
+  }
+  else {
+    return x
+  }
+});
+
+sum(1, 100000)
+// 100001
+```
+
+### 7. 函数参数的尾逗号
+
+函数定义和调用时，尾部直接有一个逗号。
+
+### 8. Function.prototype.toString()
+
+函数实例的toString()方法返回一模一样的原始代码。
+
+### 9. catch 命令的参数省略
+
+JavaScript 语言的try...catch结构，以前明确要求catch命令后面必须跟参数，接受try代码块抛出的错误对象。
+
+ES2019 做出了改变，允许catch语句省略参数。
+
+``` JavaScript
+try {
+  // ...
+} catch {
+  // ...
+}
+```
+
+## 9. 数组的扩展
+
+### 1. 扩展运算符
+
+扩展运算符（spread）是三个点（...）。它好比 rest 参数的逆运算，将一个数组转为用逗号分隔的参数序列。
+
+扩展运算符的应用场景
+
+1. 复制数组
+
+``` JavaScript
+const a1 = [1, 2];
+// 之前做法,返回新实例
+const b1 = a1.concat();
+
+// 写法一
+const a2 = [...a1];
+// 写法二
+const [...a2] = a1;
+```
+
+### 2. 合并数组
+
+``` JavaScript
+const arr1 = ['a', 'b'];
+const arr2 = ['c'];
+const arr3 = ['d', 'e'];
+
+// ES5 的合并数组
+arr1.concat(arr2, arr3);
+// [ 'a', 'b', 'c', 'd', 'e' ]
+
+// ES6 的合并数组
+[...arr1, ...arr2, ...arr3]
+// [ 'a', 'b', 'c', 'd', 'e' ]
+```
+
+### 3. 与解构赋值结合
+
+如果将扩展运算符用于数组赋值，只能放在参数的最后一位，否则会报错。
+
+``` JavaScript
+// ES5
+a = list[0], rest = list.slice(1)
+// ES6
+[a, ...rest] = list
+```
+
+### 4. 字符串
+
+扩展运算符还可以将字符串转为真正的数组。能够正确识别四个字节的 Unicode 字符。
+
+``` JavaScript
+[...'hello']
+// [ "h", "e", "l", "l", "o" ]
+```
+
+### 5. 实现了 Iterator 接口的对象
+
+任何定义了遍历器（Iterator）接口的对象，都可以用扩展运算符转为真正的数组。
+
+### 6. Map 和 Set 结构，Generator 函数
+
+扩展运算符内部调用的是数据结构的 Iterator 接口，因此只要具有 Iterator 接口的对象，都可以使用扩展运算符，比如 Map 结构和 Generator 函数运行后返回的遍历器对象。
+
+``` JavaScript
+let map = new Map([
+  [1, 'one'],
+  [2, 'two'],
+  [3, 'three'],
+]);
+
+let arr = [...map.keys()]; // [1, 2, 3]
+
+const go = function*(){
+  yield 1;
+  yield 2;
+  yield 3;
+};
+
+[...go()] // [1, 2, 3]
+```
+
+### 2. Array.from()
